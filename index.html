@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Hẹn Hò - LoveConnect</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Pacifico&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #f45b69; /* Đỏ hồng */
+            --secondary-color: #ff9aa2; /* Hồng nhạt */
+            --bg-color: #fcf4f5; /* Nền trắng hồng */
+            --heart-color: #d83a48;
+            --shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            --transition-time: 0.4s;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* Hiệu ứng nền */
+        .heart-background {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; overflow: hidden; z-index: -1;
+            background: radial-gradient(circle at top right, #fce4ec 0%, #ffcdd2 100%);
+        }
+        .heart {
+            position: absolute; font-size: 28px; color: var(--heart-color);
+            opacity: 0.7; text-shadow: 0 0 5px rgba(244, 91, 105, 0.6);
+            animation: fall linear infinite;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-10vh) rotate(0deg) scale(1.2); opacity: 0.9; }
+            100% { transform: translateY(100vh) rotate(360deg) scale(0.6); opacity: 0; }
+        }
+        
+        /* --- Header và Navigation --- */
+        header {
+            background-color: var(--primary-color);
+            color: white; padding: 15px 40px;
+            box-shadow: var(--shadow); display: flex;
+            justify-content: space-between; align-items: center; z-index: 100;
+        }
+        header h1 { margin: 0; font-size: 32px; letter-spacing: 2px; text-shadow: 1px 1px 3px rgba(0,0,0,0.15); }
+
+        nav a {
+            color: white; text-decoration: none; padding: 10px 22px;
+            margin-left: 12px; border-radius: 28px;
+            transition: all var(--transition-time) ease; font-weight: 500;
+        }
+        nav a:hover {
+            background-color: #d64a58;
+            transform: scale(1.08);
+        }
+
+        .container {
+            max-width: 1400px; margin: 30px auto; padding: 40px;
+            background-color: white; border-radius: 25px;
+            box-shadow: var(--shadow); min-height: 75vh;
+        }
+        
+        /* --- Forms & Inputs --- */
+        .auth-form, .profile-form {
+            max-width: 580px; margin: 60px auto; padding: 50px;
+            border: 3px solid var(--secondary-color); border-radius: 20px;
+            text-align: center; background-color: #fffafa;
+        }
+        input[type="text"], input[type="password"], input[type="email"], textarea, select, input[type="file"], input[type="date"] {
+            width: calc(100% - 24px); padding: 14px; margin: 12px 0;
+            border: 1px solid #ddd; border-radius: 10px;
+            box-sizing: border-box; font-size: 17px;
+        }
+        button {
+            background-color: var(--primary-color); color: white;
+            padding: 15px 35px; border: none; border-radius: 30px;
+            cursor: pointer; transition: all var(--transition-time);
+            font-weight: 600; margin-top: 20px; font-size: 18px;
+        }
+        button:hover {
+            background-color: #d64a58;
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Home & Profile */
+        .home-section { display: flex; gap: 40px; margin-top: 30px; }
+        .profile-card, .friend-list-panel {
+            padding: 30px; border: 1px solid #ffcdd2;
+            border-radius: 20px; background-color: #fff8f9;
+        }
+        .profile-card { flex: 1.5; text-align: center; }
+        .friend-list-panel { flex: 2.5; }
+        .friend-item {
+            display: flex; align-items: center; padding: 18px 0; border-bottom: 1px dashed #ffcdd2;
+            cursor: pointer; transition: background-color 0.2s;
+        }
+        .friend-item:hover { background-color: #fef0f2; }
+        .friend-avatar { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; margin-right: 20px; }
+        
+        .profile-photo-container {
+            position: relative; width: 220px; height: 220px; margin: 0 auto 30px;
+        }
+        #profile-photo-display {
+            width: 100%; height: 100%; border-radius: 50%; object-fit: cover;
+            border: 5px solid var(--secondary-color);
+        }
+        .upload-button {
+            position: absolute; bottom: 0; right: 0; width: 45px; height: 45px;
+            border-radius: 50%; background-color: var(--primary-color); color: white;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 20px; line-height: 1;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        /* Chat */
+        .chat-container { display: flex; height: 650px; border: 1px solid #ffcdd2; border-radius: 15px; }
+        .chat-sidebar { flex-basis: 250px; border-right: 1px solid #ffcdd2; background-color: #fef8f8; padding: 10px; }
+        .chat-area { flex-grow: 1; display: flex; flex-direction: column; }
+        .messages { flex-grow: 1; padding: 20px; overflow-y: auto; background-color: #fafafa; }
+        .message-input { padding: 20px; border-top: 1px solid #ffcdd2; display: flex; gap: 15px; align-items: center; }
+        .message-input input[type="text"] { flex-grow: 1; padding: 12px; border-radius: 25px; }
+        .message-bubble {
+            max-width: 60%; padding: 15px 20px; border-radius: 25px; margin-bottom: 15px;
+            word-wrap: break-word; /* Đảm bảo tin nhắn dài không tràn ra ngoài */
+        }
+        .sent { background-color: var(--primary-color); color: white; margin-left: auto; }
+        .received { background-color: #e0f7fa; color: var(--text-color); margin-right: auto; }
+        
+        /* Countdown/Kỷ Niệm */
+        .countdown-container {
+            padding: 30px; text-align: center; border: 2px solid var(--primary-color);
+            border-radius: 20px; background-color: #fff; max-width: 700px; margin: 30px auto;
+        }
+        .romantic-font { font-family: 'Pacifico', cursive; color: var(--primary-color); }
+        .days-count-display { 
+            font-size: 4rem; font-weight: bold; color: var(--heart-color); margin: 20px 0;
+            display: block; line-height: 1;
+        }
+        .milestone-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 0; border-bottom: 1px dashed #eee;
+        }
+        .milestone-date { font-weight: 600; color: #5a5a5a; }
+        .milestone-status { padding: 5px 10px; border-radius: 15px; font-size: 0.9em; }
+        .status-upcoming { background-color: #ffe0b2; color: #ff9800; }
+        .status-passed { background-color: #c8e6c9; color: #4caf50; }
+        .status-today { background-color: #ffcdd2; color: var(--primary-color); font-weight: bold; }
+
+        /* Thêm style cho ô game Tic-Tac-Toe */
+        .cell {
+            width: 100px; height: 100px; 
+            border: 2px solid var(--secondary-color); 
+            display: flex; justify-content: center; align-items: center;
+            font-size: 4rem; font-weight: 700;
+            cursor: pointer; transition: background-color 0.2s;
+            color: var(--primary-color);
+        }
+        .cell:hover:not(.x):not(.o) {
+            background-color: #ffebee;
+        }
+        .x {
+            color: var(--primary-color); /* Đỏ */
+        }
+        .o {
+            color: #4CAF50; /* Xanh lá */
+        }
+        .cell:nth-child(3n) { border-right: none; }
+        .cell:nth-child(n+7) { border-bottom: none; }
+        .cell:nth-child(3n+1) { border-left: none; }
+        .cell:nth-child(-n+3) { border-top: none; }
+
+        /* --- Style cho phần game mới --- */
+        .game-menu {
+            display: flex; justify-content: center; gap: 10px; margin-bottom: 30px;
+            flex-wrap: wrap; /* Cho phép menu xuống dòng nếu quá dài */
+        }
+        .game-menu button {
+            padding: 12px 25px; font-size: 14px; margin: 5px 0;
+            background-color: var(--secondary-color); color: var(--text-color);
+            border: 2px solid var(--primary-color);
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .game-menu button.active {
+            background-color: var(--primary-color); color: white;
+            transform: scale(1.05);
+        }
+        .game-panel {
+            border: 3px dashed var(--secondary-color); border-radius: 15px;
+            padding: 30px; max-width: 850px; margin: 20px auto;
+            background-color: #fffafa; text-align: center;
+            min-height: 400px;
+        }
+
+        /* Style cho Trò 1: Vòng quay Tình Yêu */
+        #spinner {
+            width: 250px; height: 250px; border-radius: 50%; background: conic-gradient(
+                #ffcdd2 0 45deg, #f8bbd0 0 90deg, #e1bee7 0 135deg, #c8e6c9 0 180deg, 
+                #b2ebf2 0 225deg, #ffcdd2 0 270deg, #f8bbd0 0 315deg, #e1bee7 0 360deg
+            );
+            margin: 30px auto; position: relative;
+            box-shadow: 0 0 15px rgba(244, 91, 105, 0.5);
+            transition: transform 5s cubic-bezier(0.1, 0.9, 0.4, 1);
+        }
+        .pointer {
+            width: 0; height: 0; border-left: 15px solid transparent;
+            border-right: 15px solid transparent; border-bottom: 30px solid var(--heart-color);
+            position: absolute; top: -10px; left: calc(50% - 15px); z-index: 10;
+        }
+        #spinner-result {
+            font-size: 1.2rem; font-weight: 600; color: var(--text-color); margin-top: 20px;
+            padding: 15px; border-radius: 10px; background-color: #fce4ec;
+        }
+
+        /* Style cho Trò 3: Lật Thẻ Kỷ Niệm */
+        #memory-board {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;
+            width: 440px; margin: 20px auto;
+        }
+        .memory-card {
+            width: 100px; height: 100px; background-color: var(--secondary-color);
+            border-radius: 10px; cursor: pointer; display: flex;
+            justify-content: center; align-items: center; font-size: 2.5rem;
+            color: white; transform-style: preserve-3d; transition: transform 0.5s;
+            position: relative;
+        }
+        .memory-card.flipped {
+            transform: rotateY(180deg);
+        }
+        .card-face {
+            position: absolute; width: 100%; height: 100%;
+            backface-visibility: hidden; display: flex; justify-content: center; align-items: center;
+            border-radius: 10px;
+        }
+        .card-front {
+            background-color: var(--secondary-color);
+            color: white; font-size: 1.2rem;
+            transform: rotateY(0deg);
+        }
+        .card-back {
+            background-color: var(--primary-color);
+            color: white;
+            transform: rotateY(180deg);
+        }
+        .memory-card.matched .card-back {
+            background-color: #4CAF50; /* Xanh lá khi khớp */
+        }
+        
+        /* Style cho Trò 5: Hộp Hỏi Đáp */
+        #qa-box {
+            max-width: 500px; margin: 30px auto; padding: 25px;
+            border: 3px solid #ffcdd2; border-radius: 15px;
+            background-color: #fef5f6;
+        }
+        #answer-display {
+            min-height: 80px; padding: 15px; border: 1px dashed var(--primary-color);
+            margin-top: 20px; font-size: 1.1rem; font-weight: 600;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-color); background-color: white;
+        }
+        #qa-input {
+            width: 100%; padding: 12px; margin-bottom: 15px;
+            border-radius: 8px; border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+
+        /* Style cho Trò 6: Xếp Hình Trái Tim */
+        #jigsaw-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            width: 306px; /* 100px*3 + 5px*2 */
+            margin: 20px auto;
+        }
+        .jigsaw-piece {
+            width: 100px; height: 100px;
+            background-color: #fce4ec;
+            border: 1px solid var(--secondary-color);
+            cursor: pointer;
+            font-size: 3rem;
+            display: flex; justify-content: center; align-items: center;
+            color: var(--heart-color);
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        .jigsaw-piece.solved {
+            opacity: 0.8;
+            transform: scale(1.05);
+            background-color: #c8e6c9;
+        }
+        .jigsaw-piece.selected {
+            border: 4px solid var(--primary-color);
+            transform: scale(1.1);
+        }
+        .jigsaw-piece:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body onload="checkLoginStatus()">
+    <div class="heart-background" id="heart-bg"></div>
+
+    <header>
+        <h1>LoveConnect ❤️</h1>
+        <nav id="main-nav" style="display: none;">
+            <a href="#" onclick="showSection('home')">Trang Chủ</a>
+            <a href="#" onclick="showSection('profile')">Hồ Sơ</a>
+            <a href="#" onclick="showSection('chat')">Nhắn Tin</a>
+            <a href="#" onclick="showSection('game')">Trò Chơi</a>
+            <a href="#" onclick="showSection('remind')">Kỷ Niệm</a>
+            <a href="#" onclick="logout()">Đăng Xuất</a>
+        </nav>
+    </header>
+
+    <section id="auth-section" class="auth-form" style="display: none;">
+        <div id="login-form">
+            <h2>Đăng Nhập</h2>
+            <input type="email" id="login-email" placeholder="Email" required>
+            <input type="password" id="login-password" placeholder="Mật khẩu" required>
+            <div style="text-align: left; margin-top: 10px;">
+                <input type="checkbox" id="remember-me"> 
+                <label for="remember-me">Ghi nhớ đăng nhập</label>
+            </div>
+            <button onclick="handleLogin()">Đăng Nhập</button>
+            <p style="margin-top: 20px;">Chưa có tài khoản? <a href="#" onclick="toggleAuthForm(true)">Đăng Ký</a></p>
+        </div>
+        <div id="register-form" style="display: none;">
+            <h2>Đăng Ký Tài Khoản</h2>
+            <input type="text" placeholder="Tên người dùng" required>
+            <input type="email" placeholder="Email" required>
+            <input type="password" placeholder="Mật khẩu" required>
+            <button onclick="handleRegister()">Đăng Ký</button>
+            <p style="margin-top: 20px;">Đã có tài khoản? <a href="#" onclick="toggleAuthForm(false)">Đăng Nhập</a></p>
+        </div>
+    </section>
+
+    <section id="home" class="container" style="display: none;">
+        <h2>Tìm kiếm Tình Yêu của bạn! ✨</h2>
+        <h3 id="days-together" style="color: var(--heart-color); text-align: center;"></h3>
+        <div class="home-section">
+            <div class="profile-card">
+                <h3>Hồ Sơ Của Bạn</h3>
+                <img id="home-avatar" src="https://via.placeholder.com/220/FF80AB/FFFFFF?text=YOU" alt="Avatar">
+                <h4 id="home-user-name">Người dùng A-25</h4>
+                <p id="home-user-hometown">Quê quán: Hà Nội</p>
+                <p id="home-user-hobby">Sở thích: Du lịch, Chụp ảnh</p>
+                <button onclick="showSection('profile')">Chỉnh sửa Hồ sơ</button>
+            </div>
+            <div class="friend-list-panel">
+                <h3>Danh Sách Kết Nối (1)</h3>
+                <div class="friend-list">
+                    <div class="friend-item" onclick="openChat('B')">
+                        <img class="friend-avatar" src="https://via.placeholder.com/70/FFC1E3/FFFFFF?text=B" alt="B">
+                        <div>
+                            <strong>Hệ thống </strong> 
+                            <span style="color: green; font-size: 14px;">• Trực tuyến</span>
+                            <p style="font-size: 12px; margin: 0;"> </p>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 30px; text-align: center;">
+                    <button>Tìm kiếm người phù hợp</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="profile" class="container" style="display: none;">
+        <h2>Chỉnh Sửa Hồ Sơ Cá Nhân</h2>
+        <form class="profile-form">
+            <div class="profile-photo-container">
+                <img id="profile-photo-display" src="https://via.placeholder.com/220/FF80AB/FFFFFF?text=YOU" alt="Ảnh Hồ sơ">
+                <label class="upload-button" for="profile-photo-upload">
+                    ➕
+                    <input type="file" id="profile-photo-upload" accept="image/*" onchange="previewPhoto(event)">
+                </label>
+            </div>
+            
+            <label for="p-name">Tên-Tuổi:</label>
+            <input type="text" id="p-name" value="Người dùng A-25">
+            
+            <label for="p-hometown">Quê Quán:</label>
+            <input type="text" id="p-hometown" value="Hà Nội">
+
+            <label for="p-hobby">Sở Thích:</label>
+            <input type="text" id="p-hobby" value="Du lịch, chụp ảnh, nấu ăn">
+            
+            <button type="button" onclick="saveProfile()">Lưu Hồ Sơ</button>
+        </form>
+    </section>
+
+    <section id="chat" class="container" style="display: none;">
+        <h2>Khung Chat Riêng Tư 💬</h2>
+        <div class="chat-container">
+            <div class="chat-sidebar">
+                <h4 style="padding: 10px; margin: 0; color: var(--primary-color);">Kết nối gần đây</h4>
+                <div class="friend-item" onclick="selectChat('B')">Hệ  thống</div>
+            </div>
+            <div class="chat-area">
+                <h4 style="padding: 15px; border-bottom: 1px solid #eee;" id="chat-header">Đang trò chuyện với **Người dùng B**</h4>
+                <div class="messages" id="messages-area">
+                    <div class="message-bubble received">Chào bạn đến với trang web.</div>
+                </div>
+                <div class="message-input">
+                    <input type="text" id="chat-input" placeholder="Nhập tin nhắn (Thả icon: :love:, :smile:)..."
+                                onkeypress="if(event.keyCode === 13) sendChat()">
+                    <button style="background-color: #4CAF50; margin: 0; padding: 12px; border-radius: 50%; font-size: 22px;" 
+                                onclick="attachPhoto()">📷</button>
+                    <button onclick="sendChat()" style="padding: 12px 25px; margin-top: 0; border-radius: 25px;">Gửi</button>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section id="game" class="container" style="display: none;">
+        <h2>Trò Chơi Kết Nối Tình Yêu ❤️🎮</h2>
+        
+        <div class="game-menu">
+            <button id="btn-tictactoe" onclick="showGame('tictactoe')">Tic-Tac-Toe</button>
+            <button id="btn-spinner" onclick="showGame('spinner-game')">Vòng quay Tình Yêu</button>
+            <button id="btn-guess" onclick="showGame('guess-word')">Đoán Ý Đồng Đội</button>
+            <button id="btn-memory" onclick="showGame('memory-match')">Lật Thẻ Kỷ Niệm</button>
+            <button id="btn-dice" onclick="showGame('date-dice')">Xúc Xắc Hẹn Hò</button>
+            <button id="btn-qa" onclick="showGame('qa-box-game')">Hộp Hỏi Đáp</button>
+            <button id="btn-jigsaw" onclick="showGame('jigsaw-game')">Xếp Hình Trái Tim</button>
+        </div>
+
+        <div id="tictactoe" class="game-panel" style="display: none;">
+            <h3>Tic-Tac-Toe Cổ Điển</h3>
+            <div style="text-align: center; margin-bottom: 25px;">
+                <h4 id="tictactoe-status" style="color: var(--primary-color);">Lượt của Người chơi X</h4>
+            </div>
+            
+            <div style="display: flex; justify-content: center; align-items: flex-start; gap: 40px;">
+                <div id="tic-tac-toe-board" style="display: grid; grid-template-columns: repeat(3, 100px); grid-template-rows: repeat(3, 100px); border: 4px solid var(--primary-color); border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(244, 91, 105, 0.4);">
+                </div>
+                <div style="padding: 20px; border: 1px solid var(--secondary-color); border-radius: 10px; background-color: #fff8f9; width: 200px;">
+                    <h4>Bảng Điểm</h4>
+                    <p>Người chơi X (Bạn): <span id="score-x" style="font-weight: bold; color: #d83a48;">0</span></p>
+                    <p>Người chơi O (Partner): <span id="score-o" style="font-weight: bold; color: #4CAF50;">0</span></p>
+                    <button onclick="resetGame(true)" style="background-color: #6c757d; width: 100%; padding: 10px; margin-top: 15px;">Chơi Lại (Reset Điểm)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="spinner-game" class="game-panel" style="display: none;">
+            <h3>Vòng Quay Tình Yêu 🎡</h3>
+            <p>Quay để nhận một nhiệm vụ hoặc câu hỏi lãng mạn.</p>
+            <div class="pointer"></div>
+            <div id="spinner"></div>
+            <button onclick="spinWheel()">Quay Ngay!</button>
+            <div id="spinner-result">Bấm 'Quay Ngay!' để bắt đầu.</div>
+        </div>
+        
+        <div id="guess-word" class="game-panel" style="display: none;">
+            <h3>Đoán Ý Đồng Đội 💡</h3>
+            <p id="guess-status">Người chơi 1 (Bạn) - Đặt từ bí mật.</p>
+            <input type="text" id="secret-word-input" placeholder="Nhập từ bí mật (VD: Nụ hôn)">
+            <button onclick="setSecretWord()">Đặt Từ</button>
+            <div id="guesser-controls" style="display: none; margin-top: 20px;">
+                <p>Người chơi 2 (Partner) - Đoán từ có <span id="word-length">X</span> chữ cái.</p>
+                <input type="text" id="guess-input" placeholder="Nhập câu trả lời">
+                <button onclick="checkGuess()">Đoán</button>
+                <p id="guess-feedback" style="margin-top: 15px; font-weight: bold;"></p>
+            </div>
+            <button id="reset-guess" onclick="resetGuessGame()" style="display: none; background-color: #6c757d;">Chơi Lại</button>
+        </div>
+        
+        <div id="memory-match" class="game-panel" style="display: none;">
+            <h3>Lật Thẻ Kỷ Niệm 🃏</h3>
+            <p>Tìm các cặp thẻ giống nhau để ghi nhớ khoảnh khắc ngọt ngào!</p>
+            <div id="memory-board"></div>
+            <p style="margin-top: 20px;">Số lần lật: <span id="memory-flips">0</span> | Cặp đã tìm: <span id="memory-matched">0</span></p>
+            <button onclick="initializeMemoryGame()" style="background-color: #6c757d;">Chơi Lại</button>
+        </div>
+        
+        <div id="date-dice" class="game-panel" style="display: none;">
+            <h3>Xúc Xắc Quyết Định Hẹn Hò 🎲</h3>
+            <p>Tung xúc xắc để chọn hoạt động cho buổi hẹn hò tiếp theo!</p>
+            <div id="dice-display" style="font-size: 5rem; color: var(--primary-color); margin: 30px 0;">?</div>
+            <button onclick="rollDice()">Tung Xúc Xắc</button>
+            <div id="dice-result" style="margin-top: 20px; font-size: 1.3rem; font-weight: 600;"></div>
+        </div>
+
+        <div id="qa-box-game" class="game-panel" style="display: none;">
+            <h3>Hộp Hỏi Đáp Tình Yêu 🔮</h3>
+            <p>Đặt một câu hỏi về tình yêu, và nhận được câu trả lời ngẫu nhiên từ vũ trụ!</p>
+            
+            <div id="qa-box">
+                <input type="text" id="qa-input" placeholder="Bạn muốn hỏi gì về tình yêu? (VD: Chúng ta có hợp nhau không?)">
+                <button onclick="getLoveAnswer()">Nhận Câu Trả Lời</button>
+                <div id="answer-display">
+                    Câu trả lời sẽ hiện ở đây.
+                </div>
+            </div>
+        </div>
+
+        <div id="jigsaw-game" class="game-panel" style="display: none;">
+            <h3>Xếp Hình Trái Tim 🧩</h3>
+            <p>Sắp xếp các mảnh ghép để tạo thành một hình trái tim hoàn chỉnh (Thứ tự 1 -> 9)!</p>
+            <div id="jigsaw-board"></div>
+            <p id="jigsaw-status" style="margin-top: 20px; font-weight: bold; color: var(--heart-color);">Bắt đầu xếp hình!</p>
+            <button onclick="initializeJigsawGame()">Chơi Lại (Trộn Hình)</button>
+        </div>
+
+    </section>
+
+    <section id="remind" class="container" style="display: none;">
+        <div class="countdown-container">
+            <h1 class="romantic-font" style="font-size: 2.5rem; margin-bottom: 10px;">Ngày Yêu Của Chúng Ta</h1>
+            <p style="color: #666; margin-bottom: 20px;">Chúng ta đã bên nhau được...</p>
+
+            <div id="days-container" class="my-8">
+                <span id="days-count" class="days-count-display">0</span>
+                <span style="font-size: 1.2rem; font-weight: 600; color: #777;">Ngày</span>
+            </div>
+
+            <div id="start-date-display" style="margin-bottom: 25px; font-size: 1.1rem; font-weight: 500;">
+                Ngày bắt đầu: <span id="start-date-text" style="color: var(--primary-color); font-weight: bold;">Chưa thiết lập</span>
+            </div>
+
+            <h2 style="font-size: 1.5rem; color: var(--primary-color); margin-top: 30px; margin-bottom: 15px; border-top: 1px solid #f0f0f0; padding-top: 15px;">Kỷ Niệm Sắp Tới</h2>
+            <div id="milestones" style="text-align: left; space-y-3;">
+                </div>
+
+            <div style="margin-top: 30px; border-top: 1px solid #f0f0f0; padding-top: 20px;">
+                <label for="start-date" style="display: block; color: #555; font-weight: 600; margin-bottom: 8px;">
+                    Thiết lập Ngày Bắt Đầu Yêu:
+                </label>
+                <input type="date" id="start-date">
+                <button onclick="saveDate()" style="width: 100%; max-width: 300px;">
+                    Lưu Ngày Yêu
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <div id="message-box" style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: none; align-items: center; justify-content: center; z-index: 1000;">
+        <div style="background-color: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); max-width: 350px; text-align: center;">
+            <h3 id="message-title" style="color: var(--primary-color); font-size: 1.5rem; margin-bottom: 10px;">Thông báo</h3>
+            <p id="message-content" style="color: #555; margin-bottom: 20px;"></p>
+            <button onclick="hideMessage()" style="padding: 10px 20px; margin-top: 0;">Đóng</button>
+        </div>
+    </div>
+
+
+    <script>
+        const HEARTS = ['❤️', '💖', '💘', '💕', '💞', '💓', '💗', '💌', '❣️'];
+        const ICONS = {
+            ':love:': '💖', ':kiss:': '😘', ':smile:': '😊', ':laugh:': '😂', ':cry:': '😢', ':sad:': '😔'
+        };
+        const USER_KEY = 'loveconnect_user';
+        const DAYS_KEY = 'loveStartDate';
+        
+        // --- Game Tic-Tac-Toe Variables ---
+        const WINNING_COMBOS = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Hàng ngang
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Hàng dọc
+            [0, 4, 8], [2, 4, 6]             // Đường chéo
+        ];
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let currentPlayer = 'X'; // X luôn bắt đầu
+        let isGameActive = true;
+        let scoreX = 0;
+        let scoreO = 0;
+        // ---------------------------------
+
+        let connectionDate = null;
+        let lastUserMessage = ""; // Biến lưu tin nhắn cuối cùng của người dùng để tạo ngữ cảnh phản hồi
+
+        // Khởi tạo game khi tải trang (sau khi DOM đã sẵn sàng)
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeGame();
+            initializeMemoryGame();
+            initializeJigsawGame();
+        });
+
+
+        function showMessage(title, content) {
+            document.getElementById('message-title').textContent = title;
+            document.getElementById('message-content').textContent = content;
+            document.getElementById('message-box').style.display = 'flex';
+        }
+
+        function hideMessage() {
+            document.getElementById('message-box').style.display = 'none';
+        }
+
+        function showSection(id) {
+            document.querySelectorAll('section').forEach(section => {
+                section.style.display = 'none';
+            });
+            document.getElementById(id).style.display = 'block';
+            
+            if (id === 'home') {
+                calculateDaysTogether(); 
+            } else if (id === 'remind') {
+                loadDate();
+            } else if (id === 'game') {
+                // Mặc định hiển thị Tic-Tac-Toe khi vào mục Game lần đầu
+                if (!document.querySelector('.game-panel:not([style*="display: none"])')) {
+                    showGame('tictactoe'); 
+                }
+            }
+        }
+
+        function showGame(gameId) {
+            // Ẩn tất cả bảng game
+            document.querySelectorAll('.game-panel').forEach(panel => {
+                panel.style.display = 'none';
+            });
+            // Ẩn trạng thái active của tất cả nút
+            document.querySelectorAll('.game-menu button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Hiển thị bảng game được chọn
+            document.getElementById(gameId).style.display = 'block';
+            // Đặt trạng thái active cho nút
+            const btnId = gameId.replace('-game', '').replace('-box', '');
+            document.getElementById(`btn-${btnId}`).classList.add('active');
+            
+            // Khởi tạo game cụ thể
+            if (gameId === 'tictactoe') {
+                initializeGame();
+            } else if (gameId === 'memory-match') {
+                initializeMemoryGame();
+            } else if (gameId === 'guess-word') {
+                resetGuessGame();
+            } else if (gameId === 'spinner-game') {
+                document.getElementById('spinner').style.transform = 'rotate(0deg)';
+                document.getElementById('spinner-result').textContent = "Bấm 'Quay Ngay!' để bắt đầu.";
+            } else if (gameId === 'date-dice') {
+                document.getElementById('dice-display').textContent = '?';
+                document.getElementById('dice-result').textContent = 'Chọn một hoạt động lãng mạn cho buổi hẹn hò sắp tới!';
+            } else if (gameId === 'jigsaw-game') {
+                initializeJigsawGame(); // Khởi tạo trò chơi xếp hình
+            } else if (gameId === 'qa-box-game') {
+                document.getElementById('answer-display').textContent = 'Câu trả lời sẽ hiện ở đây.';
+                document.getElementById('qa-input').value = '';
+            }
+        }
+
+        // --- 1. Quản lý Đăng nhập/Đăng ký & Ghi nhớ ---
+        function isValidGmail(email) {
+            return /^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(email);
+        }
+
+        function toggleAuthForm(isRegister) {
+            document.getElementById('register-form').style.display = isRegister ? 'block' : 'none';
+            document.getElementById('login-form').style.display = isRegister ? 'none' : 'block';
+        }
+
+        function handleRegister() {
+            showMessage("Đăng ký thành công", "Tài khoản của bạn đã được tạo. Vui lòng đăng nhập.");
+            toggleAuthForm(false);
+        }
+
+        function handleLogin() {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            const rememberMe = document.getElementById('remember-me').checked;
+
+            if (email === '' || password === '') {
+                showMessage("Lỗi", "Vui lòng nhập email và mật khẩu.");
+                return;
+            }
+
+            if (!isValidGmail(email)) {
+                showMessage("Lỗi", "Vui lòng sử dụng địa chỉ email hợp lệ của Gmail.");
+                return;
+            }
+            
+            if (rememberMe) {
+                localStorage.setItem(USER_KEY, email);
+            } else {
+                localStorage.removeItem(USER_KEY);
+            }
+            loginSuccess(email);
+        }
+
+        function checkLoginStatus() {
+            const savedUser = localStorage.getItem(USER_KEY);
+            if (savedUser) {
+                loginSuccess(savedUser); 
+            } else {
+                showSection('auth-section');
+                toggleAuthForm(false);
+            }
+        }
+
+        function loginSuccess(email) {
+            document.getElementById('auth-section').style.display = 'none';
+            document.getElementById('main-nav').style.display = 'flex';
+            document.getElementById('home-user-name').textContent = `${email.split('@')[0]}`;
+            showSection('home');
+            setInterval(createHeart, 800);
+        }
+
+        function logout() {
+            localStorage.removeItem(USER_KEY);
+            showMessage("Đã đăng xuất", "Bạn đã đăng xuất khỏi LoveConnect.");
+            setTimeout(() => location.reload(), 1000); 
+        }
+
+        // --- 2. Profile Logic ---
+        function previewPhoto(event) {
+            const reader = new FileReader();
+            reader.onload = function(){
+                const src = reader.result;
+                document.getElementById('profile-photo-display').src = src;
+                document.getElementById('home-avatar').src = src;
+            }
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        function saveProfile() {
+            const name = document.getElementById('p-name').value;
+            const hometown = document.getElementById('p-hometown').value;
+            const hobby = document.getElementById('p-hobby').value;
+            
+            document.getElementById('home-user-name').textContent = name;
+            document.getElementById('home-user-hometown').textContent = `Quê quán: ${hometown}`;
+            document.getElementById('home-user-hobby').textContent = `Sở thích: ${hobby}`;
+            
+            showMessage('Thành công', 'Hồ sơ đã được lưu và cập nhật!');
+        }
+        
+        // --- 3. Chat Logic ---
+        
+        function processMessage(message) {
+            let processed = message;
+            for (const key in ICONS) {
+                const regex = new RegExp(key, 'g'); 
+                processed = processed.replace(regex, ICONS[key]);
+            }
+            return processed;
+        }
+
+        function getPartnerResponse(userMessage) {
+            const msg = userMessage.toLowerCase();
+            
+            if (msg.includes('chào') || msg.includes('khoẻ không')) {
+                return "Chào bạn! Mình khoẻ, cảm ơn. Bạn thế nào? 😊";
+            }
+            if (msg.includes('rảnh không') || msg.includes('gặp') || msg.includes('nhắn')) {
+                return "Mình rảnh nè. Chúng ta nói chuyện một chút nhé? 😉";
+            }
+            if (msg.includes('sở thích') || msg.includes('làm gì')) {
+                return "Mình đang đọc sách (món sở thích của mình đó). Còn bạn thì sao?";
+            }
+            if (msg.includes('game') || msg.includes('chơi')) {
+                return "Tuyệt vời! Chúng ta chơi game Đoán Ý Đồng Đội nhé? 🎮";
+            }
+            if (msg.includes(':love:') || msg.includes('yêu') || msg.includes('thích')) {
+                return "Mình cũng rất quý mến bạn! 💖 :kiss: Cảm ơn bạn!";
+            }
+            if (msg.includes('buồn') || msg.includes(':cry:') || msg.includes(':sad:')) {
+                return "Có chuyện gì vậy? Hãy chia sẻ với mình đi. Mình luôn lắng nghe. 😔";
+            }
+            
+            const defaultResponses = [
+                "À, mình hiểu rồi. Cảm ơn bạn đã nói cho mình biết.",
+                "Thế à? Nghe có vẻ thú vị đó!",
+                "Bạn có muốn chuyển sang chủ đề khác không? :smile:",
+                "Mình rất vui khi trò chuyện cùng bạn!",
+                "Chà, đó là một ý tưởng tuyệt vời!"
+            ];
+            return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+        }
+
+
+        function sendChat() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (message === '') return;
+
+            const messageArea = document.getElementById('messages-area');
+            
+            // 1. Tạo tin nhắn GỬI (sent)
+            const newMessage = document.createElement('div');
+            newMessage.classList.add('message-bubble', 'sent');
+            newMessage.innerHTML = processMessage(message);
+            
+            messageArea.appendChild(newMessage);
+            
+            lastUserMessage = message; 
+
+            // 2. Cuộn và xóa input
+            messageArea.scrollTop = messageArea.scrollHeight; 
+            input.value = '';
+
+            // 3. Mô phỏng tin nhắn PHẢN HỒI (received) sau 1.5 giây
+            setTimeout(() => {
+                const partnerResponse = document.createElement('div');
+                partnerResponse.classList.add('message-bubble', 'received');
+                
+                const responseText = getPartnerResponse(lastUserMessage);
+
+                partnerResponse.innerHTML = processMessage(responseText);
+                messageArea.appendChild(partnerResponse);
+                messageArea.scrollTop = messageArea.scrollHeight;
+            }, 1500);
+        }
+        
+        function attachPhoto() {
+            const messageArea = document.getElementById('messages-area');
+            const photoMessage = document.createElement('div');
+            
+            photoMessage.classList.add('message-bubble', 'sent');
+            photoMessage.innerHTML = '<img style="max-width: 150px; border-radius: 8px;" src="https://via.placeholder.com/150/F45B69/FFFFFF?text=Hình+ảnh+đã+gửi" alt="Hình ảnh đã gửi">';
+            
+            messageArea.appendChild(photoMessage);
+            messageArea.scrollTop = messageArea.scrollHeight;
+            
+             setTimeout(() => {
+                const partnerResponse = document.createElement('div');
+                partnerResponse.classList.add('message-bubble', 'received');
+                partnerResponse.innerHTML = "Ảnh này đẹp quá! 💖 Bạn đang ở đâu vậy?";
+                messageArea.appendChild(partnerResponse);
+                messageArea.scrollTop = messageArea.scrollHeight;
+            }, 1500);
+        }
+
+        function selectChat(partnerId) {
+            document.getElementById('chat-header').textContent = `Đang trò chuyện với Người dùng ${partnerId}`;
+        }
+        
+        function openChat(partnerId) {
+            selectChat(partnerId);
+            showSection('chat');
+        }
+
+        // --- 4. Hiệu ứng Nền ---
+        function createHeart() {
+            const heartBg = document.getElementById('heart-bg');
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            heart.textContent = HEARTS[Math.floor(Math.random() * HEARTS.length)];
+            
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.animationDuration = Math.random() * 7 + 8 + 's';
+            heart.style.fontSize = Math.random() * 20 + 20 + 'px';
+            
+            heartBg.appendChild(heart);
+            setTimeout(() => { heart.remove(); }, 15000);
+        }
+
+        // --- 5. Logic Kỷ Niệm (Countdown) ---
+        function calculateDays(startDate) {
+            const today = new Date();
+            const start = new Date(startDate);
+            today.setHours(0, 0, 0, 0);
+            start.setHours(0, 0, 0, 0);
+            const diffTime = today.getTime() - start.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            return diffDays;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Chưa thiết lập';
+            const date = new Date(dateString);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function renderMilestones(startDate) {
+            if (!startDate) {
+                document.getElementById('milestones').innerHTML = '<p style="text-align: center; color: #888;">Vui lòng thiết lập ngày bắt đầu yêu!</p>';
+                return;
+            }
+
+            const start = new Date(startDate);
+            start.setHours(0, 0, 0, 0);
+
+            const milestonesDiv = document.getElementById('milestones');
+            milestonesDiv.innerHTML = '';
+            const currentDays = calculateDays(startDate);
+
+            const milestones = [
+                { days: 100, label: '100 Ngày' }, { days: 200, label: '200 Ngày' },
+                { days: 365, label: '1 Năm' }, { days: 500, label: '500 Ngày' },
+                { days: 730, label: '2 Năm' }, { days: 1000, label: '1000 Ngày' }
+            ];
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const todayTime = today.getTime();
+
+            milestones.forEach(milestone => {
+                const milestoneDate = new Date(start);
+                milestoneDate.setDate(start.getDate() + milestone.days - 1); 
+
+                const diffMs = milestoneDate.getTime() - todayTime;
+                const daysUntil = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+                const formattedDate = formatDate(milestoneDate);
+
+                let statusClass = 'status-upcoming';
+                let statusText = `Còn ${daysUntil} ngày`;
+
+                if (daysUntil < 0) {
+                    statusClass = 'status-passed';
+                    statusText = 'Đã qua';
+                } else if (daysUntil === 0) {
+                    statusClass = 'status-today';
+                    statusText = 'Hôm nay!';
+                }
+
+                if (currentDays >= milestone.days && daysUntil !== 0) {
+                    statusClass = 'status-passed';
+                    statusText = 'Đã qua';
+                }
+
+                const milestoneItem = `
+                    <div class="milestone-item">
+                        <span style="font-size: 1.1em; color: var(--text-color);">${milestone.label}</span>
+                        <span class="milestone-date">${formattedDate}</span>
+                        <span class="milestone-status ${statusClass}">${statusText}</span>
+                    </div>
+                `;
+                milestonesDiv.innerHTML += milestoneItem;
+            });
+        }
+
+        function calculateDaysTogether() {
+            const startDate = localStorage.getItem(DAYS_KEY);
+            if (startDate) {
+                const daysDiff = calculateDays(startDate);
+                const dateString = formatDate(startDate);
+                document.getElementById('days-together').innerHTML = `Chúng ta đã quen nhau được <span style="font-size: 1.2em; font-weight: bold;">${daysDiff} ngày</span>! (Từ ${dateString})`;
+            } else {
+                document.getElementById('days-together').innerHTML = `Hãy thiết lập ngày yêu đầu tiên ở mục <a href="#" onclick="showSection('remind')" style="color: var(--primary-color);">Kỷ Niệm</a>!`;
+            }
+        }
+
+        function loadDate() {
+            const savedDate = localStorage.getItem(DAYS_KEY);
+            if (savedDate) {
+                connectionDate = savedDate;
+                const daysCount = calculateDays(savedDate);
+                document.getElementById('days-count').textContent = daysCount;
+                document.getElementById('start-date-text').textContent = formatDate(savedDate);
+                renderMilestones(savedDate);
+                document.getElementById('start-date').value = savedDate; 
+            } else {
+                document.getElementById('days-count').textContent = '0';
+                document.getElementById('start-date-text').textContent = 'Chưa thiết lập';
+                renderMilestones(null);
+            }
+        }
+
+        function saveDate() {
+            const inputDate = document.getElementById('start-date').value;
+            if (inputDate) {
+                const today = new Date().toISOString().slice(0, 10);
+                
+                if (inputDate > today) {
+                    showMessage("Lỗi", "Ngày bắt đầu yêu không thể ở tương lai.");
+                    return;
+                }
+                
+                localStorage.setItem(DAYS_KEY, inputDate);
+                showMessage("Thành công", `Đã lưu ngày yêu mới: ${formatDate(inputDate)}`);
+                loadDate(); 
+            } else {
+                showMessage("Lỗi", "Vui lòng chọn một ngày hợp lệ.");
+            }
+        }
+        
+        // --- 6. Logic Game Tic-Tac-Toe ---
+        
+        function initializeGame() {
+            const boardElement = document.getElementById('tic-tac-toe-board');
+            if (!boardElement) return;
+
+            boardElement.innerHTML = '';
+            
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.dataset.index = i;
+                cell.addEventListener('click', handleCellClick);
+                boardElement.appendChild(cell);
+            }
+            // Dùng ID status mới
+            updateStatus(`Lượt của Người chơi ${currentPlayer}`, 'var(--primary-color)', 'tictactoe-status'); 
+            updateScoreDisplay();
+        }
+
+        function updateScoreDisplay() {
+            if (document.getElementById('score-x')) {
+                document.getElementById('score-x').textContent = scoreX;
+                document.getElementById('score-o').textContent = scoreO;
+            }
+        }
+
+        function updateStatus(message, color = 'var(--primary-color)', gameId = 'game-status') {
+            const statusElement = document.getElementById(gameId);
+            if (statusElement) {
+                statusElement.innerHTML = message;
+                statusElement.style.color = color;
+            }
+        }
+
+        function handleCellClick(e) {
+            const clickedCell = e.target;
+            const clickedCellIndex = parseInt(clickedCell.dataset.index);
+
+            if (board[clickedCellIndex] !== '' || !isGameActive) {
+                return;
+            }
+
+            // 1. Cập nhật trạng thái game
+            board[clickedCellIndex] = currentPlayer;
+            clickedCell.innerHTML = currentPlayer;
+            clickedCell.classList.add(currentPlayer.toLowerCase());
+
+            // 2. Kiểm tra kết quả
+            if (checkForWin()) {
+                isGameActive = false;
+                if (currentPlayer === 'X') {
+                    scoreX++;
+                    updateStatus(`Người chơi X THẮNG! 🏆`, 'var(--heart-color)', 'tictactoe-status');
+                } else {
+                    scoreO++;
+                    updateStatus(`Người chơi O THẮNG! 🎉`, '#4CAF50', 'tictactoe-status');
+                }
+                updateScoreDisplay();
+                setTimeout(startNewRound, 2000); 
+                return;
+            }
+
+            if (board.every(cell => cell !== '')) {
+                isGameActive = false;
+                updateStatus(`HÒA! Hai bạn hòa nhau. 🤝`, '#6c757d', 'tictactoe-status');
+                setTimeout(startNewRound, 2000); 
+                return;
+            }
+
+            // 3. Chuyển lượt
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            updateStatus(`Lượt của Người chơi ${currentPlayer}`, 'var(--primary-color)', 'tictactoe-status');
+        }
+
+        function checkForWin() {
+            for (let i = 0; i < WINNING_COMBOS.length; i++) {
+                const [a, b, c] = WINNING_COMBOS[i];
+                if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                    document.querySelector(`[data-index="${a}"]`).style.backgroundColor = '#fce4ec';
+                    document.querySelector(`[data-index="${b}"]`).style.backgroundColor = '#fce4ec';
+                    document.querySelector(`[data-index="${c}"]`).style.backgroundColor = '#fce4ec';
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function startNewRound() {
+            board = ['', '', '', '', '', '', '', '', ''];
+            isGameActive = true;
+            
+            currentPlayer = (currentPlayer === 'X') ? 'O' : 'X'; 
+            
+            updateStatus(`Lượt của Người chơi ${currentPlayer}`, 'var(--primary-color)', 'tictactoe-status');
+            initializeGame(); 
+        }
+
+        function resetGame(resetScores = false) {
+            if (resetScores) {
+                scoreX = 0;
+                scoreO = 0;
+                updateScoreDisplay();
+            }
+            currentPlayer = 'X'; 
+            startNewRound();
+            showMessage("Game đã được Reset", "Tất cả điểm số và trạng thái game đã được đưa về ban đầu.");
+        }
+        
+        // Hàm phụ trợ cho các game (Đã thêm ở bước trước)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+        
+        
+        // --- LOGIC 6 TRÒ CHƠI MỚI ---
+
+        // Trò 1: Vòng quay Tình Yêu (Love Spinner)
+        const SPINNER_ITEMS = [
+            "Hôn 💋", "Ôm Thật Chặt 🤗", "Nói 3 Điều Yêu Thích ❤️", "Mát-xa 5 Phút",
+            "Viết Lời Yêu", "Hát Một Bài Hát 🎶", "Kể Chuyện Cười 😂", "Lên Kế Hoạch Hẹn Hò"
+        ];
+        let isSpinning = false;
+        
+        function spinWheel() {
+            if (isSpinning) return;
+            isSpinning = true;
+
+            const spinner = document.getElementById('spinner');
+            const resultDiv = document.getElementById('spinner-result');
+
+            const totalItems = SPINNER_ITEMS.length; 
+            const degreePerItem = 360 / totalItems; 
+
+            const randomIndex = Math.floor(Math.random() * totalItems);
+            
+            // Quay 5 vòng + góc đích
+            const targetDegree = 360 * 5 + (totalItems - randomIndex) * degreePerItem - degreePerItem / 2;
+            
+            spinner.style.transition = 'transform 5s cubic-bezier(0.1, 0.9, 0.4, 1)';
+            spinner.style.transform = `rotate(${targetDegree}deg)`;
+            
+            resultDiv.textContent = 'Đang quay... Chờ một chút nhé!';
+
+            setTimeout(() => {
+                isSpinning = false;
+                const result = SPINNER_ITEMS[randomIndex];
+                resultDiv.innerHTML = `**🎉 Kết quả: ${result}**`;
+                
+                spinner.style.transition = 'none';
+                spinner.style.transform = 'rotate(0deg)'; 
+                setTimeout(() => {
+                    spinner.style.transition = 'transform 5s cubic-bezier(0.1, 0.9, 0.4, 1)';
+                }, 50);
+            }, 5000); 
+        }
+
+        // Trò 2: Đoán Ý Đồng Đội (Guess My Word)
+        let secretWord = '';
+
+        function setSecretWord() {
+            const input = document.getElementById('secret-word-input');
+            const word = input.value.trim().toLowerCase();
+            if (word.length < 3) {
+                showMessage('Lỗi', 'Từ bí mật phải có ít nhất 3 chữ cái.');
+                return;
+            }
+            
+            secretWord = word;
+            
+            input.style.display = 'none';
+            document.querySelector('#guess-word button:first-of-type').style.display = 'none'; 
+            document.getElementById('guesser-controls').style.display = 'block';
+            document.getElementById('reset-guess').style.display = 'block';
+            document.getElementById('word-length').textContent = secretWord.length;
+            document.getElementById('guess-status').textContent = 'Người chơi 2 (Partner) - Bắt đầu Đoán!';
+            document.getElementById('guess-feedback').textContent = `Gợi ý: Từ có ${secretWord.length} chữ cái.`;
+            document.getElementById('guess-input').value = '';
+        }
+
+        function checkGuess() {
+            const guessInput = document.getElementById('guess-input');
+            const feedback = document.getElementById('guess-feedback');
+            const guess = guessInput.value.trim().toLowerCase();
+
+            if (guess === '') {
+                feedback.textContent = 'Vui lòng nhập từ đoán.';
+                return;
+            }
+
+            if (guess === secretWord) {
+                feedback.innerHTML = `**🎉 CHÚC MỪNG!** 'Người chơi 2' đã đoán đúng từ **"${secretWord}"**!`;
+                document.getElementById('guesser-controls').querySelector('button').disabled = true;
+            } else {
+                feedback.textContent = 'Đoán sai rồi. Thử lại nhé! Gợi ý: ' + (guess.length > secretWord.length ? 'Từ hơi dài.' : (guess.length < secretWord.length ? 'Từ hơi ngắn.' : 'Đúng số chữ cái.'));
+                guessInput.value = '';
+            }
+        }
+
+        function resetGuessGame() {
+            secretWord = '';
+            document.getElementById('secret-word-input').value = '';
+            document.getElementById('secret-word-input').style.display = 'block';
+            document.querySelector('#guess-word button:first-of-type').style.display = 'block'; 
+            document.getElementById('guesser-controls').style.display = 'none';
+            document.getElementById('reset-guess').style.display = 'none';
+            document.getElementById('guess-status').textContent = 'Người chơi 1 (Bạn) - Đặt từ bí mật.';
+            document.getElementById('guess-feedback').textContent = '';
+            document.getElementById('guesser-controls').querySelector('button').disabled = false;
+        }
+
+
+        // Trò 3: Lật Thẻ Kỷ Niệm (Memory Match)
+        const MEMORY_ICONS = ['💖', '😘', '💍', '🥂', '🎁', '🎂', '💌', '🌟']; 
+        let cardArray = [];
+        let firstCard = null;
+        let secondCard = null;
+        let lockBoard = false;
+        let flips = 0;
+        let matchedPairs = 0;
+
+        function initializeMemoryGame() {
+            cardArray = [...MEMORY_ICONS, ...MEMORY_ICONS]; 
+            shuffleArray(cardArray);
+
+            const board = document.getElementById('memory-board');
+            if (!board) return;
+            board.innerHTML = '';
+            
+            firstCard = null;
+            secondCard = null;
+            lockBoard = false;
+            flips = 0;
+            matchedPairs = 0;
+            document.getElementById('memory-flips').textContent = flips;
+            document.getElementById('memory-matched').textContent = matchedPairs;
+            
+            cardArray.forEach((icon, index) => {
+                const card = document.createElement('div');
+                card.classList.add('memory-card');
+                card.dataset.icon = icon;
+                card.dataset.index = index;
+                card.innerHTML = `
+                    <div class="card-face card-front">Love</div>
+                    <div class="card-face card-back">${icon}</div>
+                `;
+                card.addEventListener('click', flipCard);
+                board.appendChild(card);
+            });
+        }
+
+        function flipCard() {
+            if (lockBoard) return;
+            if (this === firstCard) return;
+
+            this.classList.add('flipped');
+            flips++;
+            document.getElementById('memory-flips').textContent = flips;
+
+            if (!firstCard) {
+                firstCard = this;
+                return;
+            }
+
+            secondCard = this;
+            checkForMatch();
+        }
+
+        function checkForMatch() {
+            let isMatch = firstCard.dataset.icon === secondCard.dataset.icon;
+
+            isMatch ? disableCards() : unflipCards();
+        }
+
+        function disableCards() {
+            matchedPairs++;
+            document.getElementById('memory-matched').textContent = matchedPairs;
+            
+            firstCard.classList.add('matched');
+            secondCard.classList.add('matched');
+            
+            firstCard.removeEventListener('click', flipCard);
+            secondCard.removeEventListener('click', flipCard);
+
+            resetBoard();
+            
+            if (matchedPairs === MEMORY_ICONS.length) {
+                showMessage('Thắng!', `Chúc mừng! Bạn đã tìm thấy tất cả ${MEMORY_ICONS.length} cặp với ${flips} lần lật!`);
+            }
+        }
+
+        function unflipCards() {
+            lockBoard = true;
+
+            setTimeout(() => {
+                firstCard.classList.remove('flipped');
+                secondCard.classList.remove('flipped');
+                resetBoard();
+            }, 1200);
+        }
+
+        function resetBoard() {
+            [firstCard, secondCard, lockBoard] = [null, null, false];
+        }
+
+        // Trò 4: Xúc Xắc Quyết Định Hẹn Hò (Date Night Dice)
+        const DATE_OPTIONS = [
+            'Nấu ăn cùng nhau 🍜', 'Xem phim tại nhà 🎬', 'Đi dạo công viên 🌳',
+            'Thăm bảo tàng/triển lãm 🖼️', 'Tối hẹn hò lãng mạn ở nhà hàng 🥂', 'Đi uống cà phê/trà sữa ☕'
+        ];
+
+        function rollDice() {
+            const diceDisplay = document.getElementById('dice-display');
+            const resultDiv = document.getElementById('dice-result');
+            
+            diceDisplay.textContent = '...';
+            resultDiv.textContent = 'Đang tung xúc xắc...';
+            
+            setTimeout(() => {
+                const roll = Math.floor(Math.random() * DATE_OPTIONS.length);
+                const result = DATE_OPTIONS[roll];
+                
+                diceDisplay.textContent = '🎲'; 
+                resultDiv.innerHTML = `**Buổi Hẹn Hò Tuyệt Vời: ${result}**`;
+            }, 1000);
+        }
+        
+        // Trò 5: Hộp Hỏi Đáp Tình Yêu (Love Q&A Box)
+        const LOVE_ANSWERS = [
+            "Có, chắc chắn rồi! 💖",
+            "Không, hãy nghĩ lại thật kỹ.",
+            "Tình yêu sẽ đến khi bạn ít mong đợi nhất.",
+            "Phải, vũ trụ đang ủng hộ bạn.",
+            "Chỉ cần kiên nhẫn một chút.",
+            "Không thể dự đoán được, hãy hành động!",
+            "Rất có thể là có.",
+            "Hãy hỏi trái tim bạn, nó biết câu trả lời.",
+            "Điều đó phụ thuộc vào nỗ lực của cả hai.",
+            "Câu trả lời nằm trong nụ cười của đối phương. 😊"
+        ];
+
+        function getLoveAnswer() {
+            const questionInput = document.getElementById('qa-input');
+            const answerDiv = document.getElementById('answer-display');
+            const question = questionInput.value.trim();
+
+            if (question.length < 5 || !question.includes('?')) {
+                answerDiv.textContent = 'Vui lòng đặt một câu hỏi tình yêu hợp lệ (có dấu "?").';
+                return;
+            }
+
+            answerDiv.innerHTML = '🔮 Đang tìm kiếm câu trả lời...';
+            
+            setTimeout(() => {
+                const randomIndex = Math.floor(Math.random() * LOVE_ANSWERS.length);
+                answerDiv.textContent = LOVE_ANSWERS[randomIndex];
+            }, 1500);
+        }
+        
+        // Trò 6: Xếp Hình Trái Tim (Heart Jigsaw)
+        const JIGSAW_PIECES = ['1', '2', '3', '4', '5', '6', '7', '8', '9']; // 9 mảnh ghép
+        let currentJigsawState = [...JIGSAW_PIECES];
+        let moves = 0;
+
+        function checkJigsawSolved() {
+            return currentJigsawState.every((piece, index) => piece === JIGSAW_PIECES[index]);
+        }
+
+        function swapPieces(index1, index2) {
+            [currentJigsawState[index1], currentJigsawState[index2]] = [currentJigsawState[index2], currentJigsawState[index1]];
+            
+            const board = document.getElementById('jigsaw-board');
+            const piece1 = board.querySelector(`[data-index="${index1}"]`);
+            const piece2 = board.querySelector(`[data-index="${index2}"]`);
+
+            const tempPiece = piece1.dataset.piece;
+            piece1.dataset.piece = piece2.dataset.piece;
+            piece2.dataset.piece = tempPiece;
+            
+            piece1.textContent = piece1.dataset.piece;
+            piece2.textContent = piece2.dataset.piece;
+
+            piece1.classList.remove('selected');
+            piece2.classList.remove('selected');
+        }
+
+        function handleJigsawClick(e) {
+            const clickedPiece = e.target;
+            const clickedIndex = parseInt(clickedPiece.dataset.index);
+
+            if (checkJigsawSolved()) return; 
+
+            clickedPiece.classList.toggle('selected');
+            
+            const selectedPieces = Array.from(document.querySelectorAll('.jigsaw-piece.selected'));
+
+            if (selectedPieces.length === 2) {
+                lockBoard = true; 
+                moves++;
+                document.getElementById('jigsaw-status').textContent = `Số lần di chuyển: ${moves}`;
+
+                const index1 = parseInt(selectedPieces[0].dataset.index);
+                const index2 = parseInt(selectedPieces[1].dataset.index);
+
+                swapPieces(index1, index2);
+
+                setTimeout(() => {
+                    lockBoard = false;
+                    if (checkJigsawSolved()) {
+                        document.querySelectorAll('.jigsaw-piece').forEach(p => p.classList.add('solved'));
+                        document.getElementById('jigsaw-status').innerHTML = `**🎉 CHÚC MỪNG!** Trái tim đã hoàn chỉnh sau **${moves}** lần di chuyển!`;
+                    }
+                }, 300); 
+
+            } else if (selectedPieces.length > 2) {
+                selectedPieces[0].classList.remove('selected');
+                selectedPieces[1].classList.remove('selected');
+            }
+        }
+
+        function initializeJigsawGame() {
+            const board = document.getElementById('jigsaw-board');
+            if (!board) return;
+            board.innerHTML = '';
+            
+            moves = 0;
+            document.getElementById('jigsaw-status').textContent = 'Sắp xếp để tạo ra: 1, 2, 3, 4, 5, 6, 7, 8, 9';
+            
+            const shuffledPieces = [...JIGSAW_PIECES];
+            shuffleArray(shuffledPieces); 
+            currentJigsawState = shuffledPieces;
+
+            shuffledPieces.forEach((pieceValue, index) => {
+                const piece = document.createElement('div');
+                piece.classList.add('jigsaw-piece');
+                piece.dataset.index = index; 
+                piece.dataset.piece = pieceValue; 
+                piece.textContent = pieceValue; 
+                piece.classList.remove('solved', 'selected');
+                piece.addEventListener('click', handleJigsawClick);
+                board.appendChild(piece);
+            });
+        }
+    </script>
+</body>
+</html>
